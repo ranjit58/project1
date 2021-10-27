@@ -1,0 +1,118 @@
+---
+title: "Somatic SNP filtering"
+author: "Ranjit Kumar"
+
+---
+
+\
+
+> Project details: Freebayes was used to perform varint calling on tumor-matched normal samples. We have 88 vcf files, converted to tab delimted form using GATK. We added annoatations from 1000 genome, COSMIC and SNPeff. The objective is to filter germline variants from somatic ones. Ignore NF(normal frequency in further analysis)
+
+> This notebook GF1a contains importing all the data into dataframe, removing duplicates and a feature NF and saving it as a R object.
+
+#### A. Loading all required libraries (install if they are not available)
+
+```{r cache=TRUE, echo=TRUE, include=TRUE, eval=FALSE}
+# install packages
+#install.packages("generics")
+#install.packages("tidyverse")
+#install.packages("caret",dependencies = TRUE)
+#install.packages("xgboost")
+#install.packages("DiagrammeR")
+#install.packages("knitr")
+
+# load libraries
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(caret)
+library(xgboost)
+library(DiagrammeR)
+library(readr)
+library(rmarkdown)
+```
+
+\  
+
+#### B. Loading all the dataset (88 samples)
+
+```{r echo=TRUE, cache=TRUE, include=TRUE, eval=FALSE}
+
+setwd(dir = "/home/rstudio/dataset_14oct2")
+
+# define dataframe to store all the data
+all_vcf=data.frame()
+
+# list of all 88 vcf files and reading them in dataframe all_vcf and save it for future reading.
+joint_list = list.files(path = "joint_processed", pattern="*joint.txt",full.names = T)
+
+for (item in joint_list)
+{
+  #print(item )
+  cat(".")
+  df = read.table(item, header = T,,sep='\t')
+  all_vcf = rbind(all_vcf,df)
+}
+save.image(file='all_vcf.RData')
+```
+  
+
+For loading the raw data if needed.
+
+```{r echo=TRUE, cache=TRUE, include=TRUE, eval=FALSE}
+load('all_data.RData')
+```
+
+\
+
+
+#### C. Checking dataframe dimension, column names and datatypes
+
+```{r echo=TRUE, cache=TRUE, include=TRUE, eval=TRUE}
+# check the dimension of dataframe (rows and columns)
+dim(all_vcf)
+```
+
+
+```{r echo=TRUE, cache=TRUE, include=TRUE, eval=TRUE}
+# check the column names
+colnames(all_vcf)
+# We added "Mut_type", "Sample_name", "snpeff_variant", "snpeff_effect", "X1000g_AF", "isCOSMIC"
+```
+
+
+#### D. Removing duplicates and excluding feature NF
+
+```{r echo=TRUE, cache=TRUE, include=TRUE, eval=FALSE}
+# removing duplicate entries (have to check for reasons.. why its there)
+all_vcf2 <- all_vcf %>% distinct(Sample_name, Mut_type, CHROM, POS, .keep_all = TRUE) %>% select(-c(NF))
+```
+
+```{r echo=TRUE, cache=TRUE, include=TRUE, eval=TRUE}
+# new dimension of unique dataframe is 
+dim(all_vcf2)
+```
+
+```{r echo=TRUE, cache=TRUE, include=TRUE, eval=FALSE}
+save(all_vcf2, file = "all_vcf2.RData")
+```
+
+#### E. local rendering to prevent rerunning all the document from start.
+```{r  eval=FALSE}
+
+render("GF1a.Rmd")
+# opens at http://172.28.23.82/files/dataset_14oct2/GF1a.html
+
+```
+
+
+
+
+
+
+
+
+
+
+
